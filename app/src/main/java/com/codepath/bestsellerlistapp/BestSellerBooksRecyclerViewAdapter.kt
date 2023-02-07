@@ -1,10 +1,19 @@
 package com.codepath.bestsellerlistapp
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.codepath.bestsellerlistapp.R.id
 
 /**
@@ -13,10 +22,9 @@ import com.codepath.bestsellerlistapp.R.id
  */
 class BestSellerBooksRecyclerViewAdapter(
     private val books: List<BestSellerBook>,
-    private val mListener: OnListFragmentInteractionListener?
-    )
+    private val mListener: OnListFragmentInteractionListener?)
     : RecyclerView.Adapter<BestSellerBooksRecyclerViewAdapter.BookViewHolder>()
-    {
+{
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.fragment_best_seller_book, parent, false)
@@ -31,7 +39,10 @@ class BestSellerBooksRecyclerViewAdapter(
         var mItem: BestSellerBook? = null
         val mBookTitle: TextView = mView.findViewById<View>(id.book_title) as TextView
         val mBookAuthor: TextView = mView.findViewById<View>(id.book_author) as TextView
-
+        val mRank: TextView = mView.findViewById(id.rank) as TextView
+        val mDescription :TextView = mView.findViewById(id.description) as TextView
+        val mBookImage: ImageView= mView.findViewById(id.book_image) as ImageView
+        val buyButton: Button = mView.findViewById(id.amazonLink) as Button
         override fun toString(): String {
             return mBookTitle.toString() + " '" + mBookAuthor.text + "'"
         }
@@ -46,13 +57,30 @@ class BestSellerBooksRecyclerViewAdapter(
         holder.mItem = book
         holder.mBookTitle.text = book.title
         holder.mBookAuthor.text = book.author
+        holder.mRank.text = book.rank.toString()
+        Glide.with(holder.mView)
+            .load(book.book_image)
+            .centerInside()
+            .into(holder.mBookImage)
+        holder.mDescription.text = book.description
 
         holder.mView.setOnClickListener {
             holder.mItem?.let { book ->
                 mListener?.onItemClick(book)
             }
         }
+        holder.buyButton.setOnClickListener{
+            try {
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(book.amazonLink))
+                startActivity(it.context, browserIntent, null)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(it.context, "Invalid URL for " + book.title, Toast.LENGTH_LONG).show()
+            }
+
+        }
+
     }
+
 
     /**
      * Remember: RecyclerView adapters require a getItemCount() method.
